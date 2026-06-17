@@ -44,8 +44,8 @@ var upstreamSSECodeMapping = map[int]struct {
 	// ── 上游引擎连接/处理错误 (10009-10012, 10222-10223) ──
 	10009: {Code: "upstream_connection_error", Type: "upstream_error", Message: "Upstream connection error"},
 	10010: {Code: "engine_overloaded", Type: "server_error", Message: "Upstream engine overloaded, please retry later"},
-	10011: {Code: "upstream_internal_error", Type: "upstream_error", Message: "Upstream request processing error"},
-	10012: {Code: "upstream_internal_error", Type: "upstream_error", Message: "Upstream request processing error"},
+	10011: {Code: "upstream_connection_error", Type: "upstream_error", Message: "Upstream connection error"},
+	10012: {Code: "engine_overloaded", Type: "server_error", Message: "Upstream engine overloaded, please retry later"},
 	10222: {Code: "upstream_network_error", Type: "upstream_error", Message: "Upstream network error"},
 	10223: {Code: "upstream_routing_error", Type: "upstream_error", Message: "Upstream routing error"},
 
