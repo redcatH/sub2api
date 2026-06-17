@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -187,8 +189,8 @@ func rewriteUpstreamErrorPayload(payload string) string {
 		result, _ = sjson.Set(result, "error.code", mapped.Code)
 	}
 
-	// 设置错误消息
-	result, _ = sjson.Set(result, "error.message", mapped.Message)
+	// 设置错误消息（附带时间戳，便于客户端与后台日志对齐）
+	result, _ = sjson.Set(result, "error.message", fmt.Sprintf("%s (ref:%s)", mapped.Message, time.Now().Format("15:04:05")))
 
 	// 设置错误类型（如果不存在）
 	if !gjson.Get(payload, "error.type").Exists() {
