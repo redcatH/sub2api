@@ -318,6 +318,17 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 				usageOnlyChunk := isOpenAIChatUsageOnlyStreamChunk(payload)
 				if u := extractCCStreamUsage(payload); u != nil {
 					usage = *u
+				} else if !usageOnlyChunk {
+					// [DEBUG] SSE 帧 usage 提取失败，记录原始内容用于排查上游业务错误
+					// 覆盖场景：讯飞等上游在 HTTP 200 + SSE 流中返回业务错误码（如 code:10222）
+					if !gjson.Get(payload, "choices").Exists() {
+						logger.L().Warn("[Raw CC SSE] Frame without usage or choices",
+							zap.Int64("account_id", account.ID),
+							zap.String("account_name", account.Name),
+							zap.String("platform", account.Platform),
+							zap.String("payload", truncateString(trimmedPayload, 500)),
+						)
+					}
 				}
 				if firstTokenMs == nil && !usageOnlyChunk {
 					elapsed := int(time.Since(startTime).Milliseconds())

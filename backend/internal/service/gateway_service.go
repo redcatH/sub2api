@@ -5979,6 +5979,13 @@ func (s *GatewayService) handleStreamingResponseAnthropicAPIKeyPassthrough(
 					firstTokenMs = &ms
 				}
 				s.parseSSEUsagePassthrough(data, usage)
+				// [DEBUG] SSE 帧无 Anthropic 标准事件类型，记录原始内容用于排查上游业务错误
+				// 覆盖场景：讯飞等上游在 HTTP 200 + SSE 流中返回业务错误码（如 code:10222）
+				eventType := gjson.Get(data, "type").String()
+				if trimmed != "" && trimmed != "[DONE]" && eventType == "" && !gjson.Get(data, "choices").Exists() {
+					logger.LegacyPrintf("service.gateway", "[Anthropic passthrough] SSE frame without standard event type: account=%d(%s) platform=%s payload=%s",
+						account.ID, account.Name, account.Platform, truncateString(trimmed, 500))
+				}
 			} else {
 				trimmed := strings.TrimSpace(line)
 				if strings.HasPrefix(trimmed, "event:") && anthropicStreamEventIsTerminal(strings.TrimSpace(strings.TrimPrefix(trimmed, "event:")), "") {
