@@ -337,7 +337,7 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 			}
 		}
 
-		writeLine(line)
+		writeLine(sanitizeUpstreamSSELine(line))
 		if line == "" {
 			if !clientDisconnected && clientOutputStarted {
 				c.Writer.Flush()
