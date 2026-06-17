@@ -326,7 +326,7 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 							zap.Int64("account_id", account.ID),
 							zap.String("account_name", account.Name),
 							zap.String("platform", account.Platform),
-							zap.String("payload", truncateString(trimmedPayload, 500)),
+							zap.String("payload", truncateString(trimmedPayload, 2048)),
 						)
 					}
 				}

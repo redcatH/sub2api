@@ -5984,7 +5984,7 @@ func (s *GatewayService) handleStreamingResponseAnthropicAPIKeyPassthrough(
 				eventType := gjson.Get(data, "type").String()
 				if trimmed != "" && trimmed != "[DONE]" && eventType == "" && !gjson.Get(data, "choices").Exists() {
 					logger.LegacyPrintf("service.gateway", "[Anthropic passthrough] SSE frame without standard event type: account=%d(%s) platform=%s payload=%s",
-						account.ID, account.Name, account.Platform, truncateString(trimmed, 500))
+						account.ID, account.Name, account.Platform, truncateString(trimmed, 2048))
 				}
 			} else {
 				trimmed := strings.TrimSpace(line)
