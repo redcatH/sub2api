@@ -80,6 +80,14 @@ var upstreamSSECodeMapping = map[int]struct {
 // 匹配到任意标识符的帧会被改写为通用格式，防止客户端识别上游供应商。
 var upstreamIdentifiers = []string{"Xunfei", "Sid:", "ModelArts"}
 
+// SanitizedSSELine 包含改写后的 SSE 行以及改写元信息（用于 ops 错误记录）。
+type SanitizedSSELine struct {
+	Line         string // 改写后的 SSE 行（若未改写则与原始行相同）
+	Rewritten    bool   // 是否被改写
+	OriginalCode int    // 原始上游错误码（0 表示无错误码）
+	OriginalMsg  string // 原始上游错误消息（为管理员日志保留）
+}
+
 // sanitizeUpstreamSSELine 检查 SSE 行是否包含上游供应商错误信息，
 // 如果是则改写为通用格式，否则原样返回。
 //
@@ -88,38 +96,47 @@ var upstreamIdentifiers = []string{"Xunfei", "Sid:", "ModelArts"}
 //  2. 数据行提取有效载荷后检查是否包含上游标识
 //  3. 包含上游标识的错误帧改写为通用格式
 //  4. 不包含上游标识的帧原样返回
-func sanitizeUpstreamSSELine(line string) string {
+func sanitizeUpstreamSSELine(line string) SanitizedSSELine {
 	// 快速排除：非数据行直接返回
 	trimmed := strings.TrimSpace(line)
 	if !strings.HasPrefix(trimmed, "data:") {
-		return line
+		return SanitizedSSELine{Line: line}
 	}
 
 	// 提取数据行中的有效载荷
 	payload, ok := extractSSEDataPayload(trimmed)
 	if !ok || payload == "" || payload == "[DONE]" {
-		return line
+		return SanitizedSSELine{Line: line}
 	}
 
 	// 快速排除：不含上游标识的帧直接返回
 	if !containsUpstreamIdentifier(payload) {
-		return line
+		return SanitizedSSELine{Line: line}
 	}
 
 	// 仅处理包含错误对象的帧
 	if !gjson.Get(payload, "error").Exists() {
-		return line
+		return SanitizedSSELine{Line: line}
 	}
+
+	// 提取原始错误信息用于 ops 记录
+	originalCode := int(gjson.Get(payload, "error.code").Int())
+	originalMsg := gjson.Get(payload, "error.message").String()
 
 	// 改写错误帧
 	sanitized := rewriteUpstreamErrorPayload(payload)
 	if sanitized == payload {
-		return line
+		return SanitizedSSELine{Line: line}
 	}
 
 	// 重建数据行，保留前缀空白
 	prefix := line[:len(line)-len(strings.TrimLeft(line, " \t"))]
-	return prefix + "data: " + sanitized
+	return SanitizedSSELine{
+		Line:         prefix + "data: " + sanitized,
+		Rewritten:    true,
+		OriginalCode: originalCode,
+		OriginalMsg:  truncateString(originalMsg, 500),
+	}
 }
 
 // extractSSEDataPayload 从数据行中提取有效载荷内容。

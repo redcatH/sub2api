@@ -337,7 +337,19 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 			}
 		}
 
-		writeLine(sanitizeUpstreamSSELine(line))
+		sanitized := sanitizeUpstreamSSELine(line)
+		if sanitized.Rewritten {
+			appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+				Platform:           account.Platform,
+				AccountID:          account.ID,
+				AccountName:        account.Name,
+				UpstreamStatusCode: 200,
+				Kind:               "sse_stream_error",
+				Message:            fmt.Sprintf("SSE stream error (code:%d)", sanitized.OriginalCode),
+				Detail:             sanitized.OriginalMsg,
+			})
+		}
+		writeLine(sanitized.Line)
 		if line == "" {
 			if !clientDisconnected && clientOutputStarted {
 				c.Writer.Flush()

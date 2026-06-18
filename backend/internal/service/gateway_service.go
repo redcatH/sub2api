@@ -5996,7 +5996,18 @@ func (s *GatewayService) handleStreamingResponseAnthropicAPIKeyPassthrough(
 			if !clientDisconnected {
 				restored := string(reverseToolNamesIfPresent(c, []byte(line)))
 				sanitized := sanitizeUpstreamSSELine(restored)
-				if _, err := io.WriteString(w, sanitized); err != nil {
+				if sanitized.Rewritten {
+					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+						Platform:           account.Platform,
+						AccountID:          account.ID,
+						AccountName:        account.Name,
+						UpstreamStatusCode: 200,
+						Kind:               "sse_stream_error",
+						Message:            fmt.Sprintf("SSE stream error (code:%d)", sanitized.OriginalCode),
+						Detail:             sanitized.OriginalMsg,
+					})
+				}
+				if _, err := io.WriteString(w, sanitized.Line); err != nil {
 					clientDisconnected = true
 					logger.LegacyPrintf("service.gateway", "[Anthropic passthrough] Client disconnected during streaming, continue draining upstream for usage: account=%d", account.ID)
 				} else if _, err := io.WriteString(w, "\n"); err != nil {
