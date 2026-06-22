@@ -39,7 +39,7 @@ var upstreamSSECodeMapping = map[int]struct {
 	10007: {Code: "rate_limit_exceeded", Type: "rate_limit_error", Message: "Rate limit exceeded"},
 
 	// ── 服务容量不足 (10008) ──
-	10008: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
+	10008: {Code: "upstream_overloaded", Type: "server_error", Message: "Upstream service capacity exhausted, please retry later"},
 
 	// ── 上游引擎连接/处理错误 (10009-10012, 10222-10223) ──
 	10009: {Code: "upstream_connection_error", Type: "upstream_error", Message: "Upstream connection error"},
@@ -55,8 +55,8 @@ var upstreamSSECodeMapping = map[int]struct {
 	10019: {Code: "content_filtered", Type: "content_filter", Message: "Content filtered"},
 
 	// ── 认证/授权错误 (10015-10016) ──
-	10015: {Code: "authentication_error", Type: "authentication_error", Message: "Authentication failed"},
-	10016: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
+	10015: {Code: "authentication_error", Type: "authentication_error", Message: "App ID blacklisted"},
+	10016: {Code: "authorization_error", Type: "authentication_error", Message: "App authorization failed, please check feature access and quota"},
 
 	// ── 服务端过载 (10110) ──
 	10110: {Code: "engine_overloaded", Type: "server_error", Message: "Upstream engine overloaded"},
@@ -66,11 +66,11 @@ var upstreamSSECodeMapping = map[int]struct {
 	10910: {Code: "context_length_exceeded", Type: "invalid_request_error", Message: "Context length exceeded"},
 
 	// ── 配额/授权不足 (11200-11203, 11210) ──
-	11200: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
-	11201: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
-	11202: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
-	11203: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
-	11210: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "Upstream quota insufficient"},
+	11200: {Code: "insufficient_quota", Type: "rate_limit_error", Message: "App authorization or quota limit exceeded"},
+	11201: {Code: "call_limit_exceeded", Type: "rate_limit_error", Message: "Call count limit exceeded"},
+	11202: {Code: "qps_limit_exceeded", Type: "rate_limit_error", Message: "QPS rate limit exceeded"},
+	11203: {Code: "concurrency_limit_exceeded", Type: "rate_limit_error", Message: "Concurrency limit exceeded"},
+	11210: {Code: "tpm_limit_exceeded", Type: "rate_limit_error", Message: "TPM limit exceeded, please retry later"},
 
 	// ── 模型不可用 (11221) ──
 	11221: {Code: "model_not_available", Type: "invalid_request_error", Message: "Requested model not available"},
