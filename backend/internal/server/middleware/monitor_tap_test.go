@@ -117,8 +117,8 @@ func TestMonitorTap_GzipRequestDecompressed(t *testing.T) {
 	plain := `{"model":"gz","messages":[]}`
 	var gzBuf bytes.Buffer
 	gw := gzip.NewWriter(&gzBuf)
-	gw.Write([]byte(plain))
-	gw.Close()
+	_, _ = gw.Write([]byte(plain))
+	_ = gw.Close()
 
 	r := gin.New()
 	r.Use(func(c *gin.Context) { setAPIKeyForTest(c, 12); c.Next() })
