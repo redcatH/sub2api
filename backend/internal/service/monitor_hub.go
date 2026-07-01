@@ -15,7 +15,9 @@ const (
 	MonitorChanBuffer = 64
 	// MonitorMaxBodySnapshot 限制单条快照里 request/response body 的截断长度，
 	// 控制内存与 WS 帧大小。流式 SSE 长响应只保留前 N 字节。
-	MonitorMaxBodySnapshot = 32 * 1024
+	// 4MB：覆盖 Claude Code 等客户端的大请求（含 CLAUDE.md + 完整 skills 列表）
+	// 及大多数流式响应；仍保留上限以防超大响应耗尽内存。如需不截断可继续调大。
+	MonitorMaxBodySnapshot = 4 * 1024 * 1024
 )
 
 // MonitorSnapshot 描述一次网关请求的配对快照（请求 body + 最终响应 body）。
