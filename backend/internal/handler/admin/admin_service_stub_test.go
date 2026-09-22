@@ -761,6 +761,9 @@ func (s *stubAdminService) AdminUpdateAPIKeyGroupID(ctx context.Context, keyID i
 					k.GroupID = &gid
 				}
 			}
+			// 模拟真实持久化：写回切片，使同一测试内的后续调用（如状态变更）
+			// 能像从数据库重读一样看到本次变更
+			s.apiKeys[i] = k
 			return &service.AdminUpdateAPIKeyGroupIDResult{APIKey: &k}, nil
 		}
 	}
@@ -776,6 +779,17 @@ func (s *stubAdminService) AdminResetAPIKeyRateLimitUsage(ctx context.Context, k
 			s.apiKeys[i].Window5hStart = nil
 			s.apiKeys[i].Window1dStart = nil
 			s.apiKeys[i].Window7dStart = nil
+			k := s.apiKeys[i]
+			return &k, nil
+		}
+	}
+	return nil, service.ErrAPIKeyNotFound
+}
+
+func (s *stubAdminService) AdminSetAPIKeyStatus(ctx context.Context, keyID int64, status string) (*service.APIKey, error) {
+	for i := range s.apiKeys {
+		if s.apiKeys[i].ID == keyID {
+			s.apiKeys[i].Status = status
 			k := s.apiKeys[i]
 			return &k, nil
 		}

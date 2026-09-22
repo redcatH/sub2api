@@ -8,7 +8,11 @@ import (
 
 // API Key status constants
 const (
-	StatusAPIKeyActive         = "active"
+	StatusAPIKeyActive = "active"
+	// StatusAPIKeyInactive 是用户侧/管理侧手动停用时写入的存储值（用户端
+	// PUT /api/keys/:id 与管理端接口共用该契约）。StatusAPIKeyDisabled 为
+	// 历史保留常量，现有代码不再写入该值。
+	StatusAPIKeyInactive       = "inactive"
 	StatusAPIKeyDisabled       = "disabled"
 	StatusAPIKeyQuotaExhausted = "quota_exhausted"
 	StatusAPIKeyExpired        = "expired"
