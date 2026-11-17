@@ -501,6 +501,7 @@ func (s *GatewayService) handleStreamingResponseAnthropicAPIKeyPassthrough(
 		keepaliveTimer.Reset(keepaliveInterval)
 	}
 	inPartialEvent := false
+	clientModel := compositeClientModel(ctx, "")
 
 	for {
 		select {
@@ -567,8 +568,14 @@ func (s *GatewayService) handleStreamingResponseAnthropicAPIKeyPassthrough(
 				}
 			}
 
+			if data, ok := extractAnthropicSSEDataLine(line); ok && clientModel != "" && gjson.Get(data, "type").String() == "message_start" && gjson.Get(data, "message.model").Exists() {
+				if rewritten, err := sjson.Set(data, "message.model", clientModel); err == nil {
+					line = "data: " + rewritten
+				}
+			}
+
 			if !clientDisconnected {
-				restored := string(reverseToolNamesIfPresent(c, []byte(line)))
+				restored := reverseToolNamesIfPresentString(c, line)
 				sanitized := sanitizeUpstreamSSELine(restored)
 				if sanitized.Rewritten {
 					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
@@ -913,6 +920,7 @@ func (s *GatewayService) handleNonStreamingResponseAnthropicAPIKeyPassthrough(
 	if contentType == "" {
 		contentType = "application/json"
 	}
+	body = restoreCompositeClientModel(ctx, body)
 	body = reverseToolNamesIfPresent(c, body)
 	c.Data(resp.StatusCode, contentType, body)
 	return usage, nil
