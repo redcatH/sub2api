@@ -290,7 +290,7 @@ jobs:
             dist/artifacts.json
             dist/metadata.json
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 1
 
       # Update DockerHub description
       - name: Update DockerHub description
